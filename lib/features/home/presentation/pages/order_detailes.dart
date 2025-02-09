@@ -78,7 +78,10 @@ class _OrderDetailesState extends State<OrderDetailes> {
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('تم تأكيد عملية التصوير بنجاح!'),
+                  content: Text(
+                    'تم تأكيد عملية التصوير بنجاح!',
+                    textDirection: TextDirection.rtl,
+                  ),
                   backgroundColor: Colors.green,
                 ),
               );
@@ -94,7 +97,10 @@ class _OrderDetailesState extends State<OrderDetailes> {
             } else if (state is UpdateStateOrderFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('فشلت عملية تأكيد التصوير!'),
+                  content: Text(
+                    'فشلت عملية تأكيد التصوير!',
+                    textDirection: TextDirection.rtl,
+                  ),
                   backgroundColor: Colors.red,
                 ),
               );
@@ -120,7 +126,10 @@ class _OrderDetailesState extends State<OrderDetailes> {
               context.read<OrderCubit>().fetchOrders(startOfMonth, endOfMonth);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('تم تحديث السعر بنجاح!'),
+                  content: Text(
+                    'تم تحديث السعر بنجاح!',
+                    textDirection: TextDirection.rtl,
+                  ),
                   backgroundColor: Colors.green,
                 ),
               );
@@ -132,7 +141,10 @@ class _OrderDetailesState extends State<OrderDetailes> {
             } else if (state is UpdateOrderError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('فشل تحديث السعر!'),
+                  content: Text(
+                    'فشل تحديث السعر!',
+                    textDirection: TextDirection.rtl,
+                  ),
                   backgroundColor: Colors.red,
                 ),
               );
@@ -416,7 +428,10 @@ class FileUploader {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('تم إلغاء عملية الرفع'),
+            content: Text(
+              'تم إلغاء عملية الرفع',
+              textDirection: TextDirection.rtl,
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -430,7 +445,10 @@ class FileUploader {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('لم يتم اختيار ملف صالح'),
+            content: Text(
+              'لم يتم اختيار ملف صالح',
+              textDirection: TextDirection.rtl,
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -526,7 +544,10 @@ class FileUploader {
             .updateOrderState(int.parse(orderId));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تم رفع الملف بنجاح: $fileName'),
+            content: Text(
+              'تم رفع الملف بنجاح: $fileName',
+              textDirection: TextDirection.rtl,
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -542,7 +563,10 @@ class FileUploader {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل رفع الملف: $error'),
+            content: Text(
+              'فشل رفع الملف: $error',
+              textDirection: TextDirection.rtl,
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -590,7 +614,10 @@ class FileUploader {
     Navigator.of(context).pop(); // إغلاق Dialog التقدم
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('تم إلغاء عملية الرفع'),
+        content: Text(
+          'تم إلغاء عملية الرفع',
+          textDirection: TextDirection.rtl,
+        ),
         backgroundColor: Colors.red,
       ),
     );

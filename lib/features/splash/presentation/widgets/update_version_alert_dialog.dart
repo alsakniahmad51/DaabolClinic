@@ -41,7 +41,11 @@ class UpdateVersionAlertDialog extends StatelessWidget {
               await launchUrlString(url, mode: LaunchMode.externalApplication);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('تعذر فتح الرابط')),
+                const SnackBar(
+                    content: Text(
+                  'تعذر فتح الرابط',
+                  textDirection: TextDirection.rtl,
+                )),
               );
             }
           },

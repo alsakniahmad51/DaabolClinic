@@ -44,7 +44,10 @@ class DoctorOrderDetailes extends StatelessWidget {
             } else if (state is UpdateStateOrderSucsecc) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('تم تأكيد عملية التصوير بنجاح!'),
+                  content: Text(
+                    'تم تأكيد عملية التصوير بنجاح!',
+                    textDirection: TextDirection.rtl,
+                  ),
                   backgroundColor: Colors.green,
                 ),
               );
@@ -58,7 +61,10 @@ class DoctorOrderDetailes extends StatelessWidget {
             } else if (state is UpdateStateOrderFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('فشلت عملية تأكيد التصوير!'),
+                  content: Text(
+                    'فشلت عملية تأكيد التصوير!',
+                    textDirection: TextDirection.rtl,
+                  ),
                   backgroundColor: Colors.red,
                 ),
               );
@@ -81,7 +87,10 @@ class DoctorOrderDetailes extends StatelessWidget {
             } else if (state is UpdateOrderSuccess) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('تم تحديث السعر بنجاح!'),
+                  content: Text(
+                    'تم تحديث السعر بنجاح!',
+                    textDirection: TextDirection.rtl,
+                  ),
                   backgroundColor: Colors.green,
                 ),
               );
@@ -94,7 +103,10 @@ class DoctorOrderDetailes extends StatelessWidget {
             } else if (state is UpdateOrderError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('فشل تحديث السعر!'),
+                  content: Text(
+                    'فشل تحديث السعر!',
+                    textDirection: TextDirection.rtl,
+                  ),
                   backgroundColor: Colors.red,
                 ),
               );

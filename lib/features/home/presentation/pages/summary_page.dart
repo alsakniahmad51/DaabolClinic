@@ -141,7 +141,11 @@ class SummaryPage extends StatelessWidget {
       await Share.shareXFiles([xFile], text: 'إليك $title');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("فشل المشاركة: $e")),
+        SnackBar(
+            content: Text(
+          "فشل المشاركة: $e",
+          textDirection: TextDirection.rtl,
+        )),
       );
     }
   }
