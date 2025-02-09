@@ -31,6 +31,7 @@ dependencies:
   arabic_font: ^0.0.9
   bloc: ^8.1.4
   cupertino_icons: ^1.0.8
+  dio: ^5.8.0+1
   equatable: ^2.0.5
   file_picker: ^8.3.1
   flutter:
@@ -42,6 +43,7 @@ dependencies:
   flutter_svg: ^2.0.10+1
   font_awesome_flutter: ^10.8.0
   intl: ^0.19.0
+  mime: ^2.0.0
   month_year_picker: ^0.4.0+1
   path_provider: ^2.1.5
   pdf: ^3.11.1
@@ -50,6 +52,7 @@ dependencies:
   share_plus: ^10.1.2
   shimmer: ^3.0.0
   supabase_flutter: ^2.8.0
+  supabase_progress_uploads: ^1.0.1
   timeago: ^3.7.0
   url_launcher: ^6.3.1
 
