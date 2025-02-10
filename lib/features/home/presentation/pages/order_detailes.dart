@@ -530,6 +530,7 @@ class FileUploader {
 
       await _uploadService.uploadFile(
         xFile,
+        fileName: fileName,
         onUploadProgress: (progress) {
           _updateProgress(progress);
         },
@@ -629,17 +630,18 @@ class SupabaseUploadService {
   final String bucketName;
 
   SupabaseUploadService(this.supabaseClient, this.bucketName);
-
   Future<void> uploadFile(
     XFile file, {
+    required String fileName, // استقبال اسم الملف
     required Function(double) onUploadProgress,
   }) async {
     try {
       final fileBytes = await file.readAsBytes();
-      final filePath = '${DateTime.now().millisecondsSinceEpoch}_${file.name}';
 
-      // حجم كل جزء (chunk) - يمكنك تعديله حسب الحاجة
-      const chunkSize = 256 * 1024; // 1 MB
+      // استخدم fileName الذي تم تمريره بدلاً من التسمية العشوائية
+      final filePath = fileName;
+
+      const chunkSize = 256 * 1024; // 256 KB
       int totalChunks = (fileBytes.length / chunkSize).ceil();
       int uploadedBytes = 0;
 
@@ -650,23 +652,21 @@ class SupabaseUploadService {
           end = fileBytes.length;
         }
 
-        // رفع الجزء الحالي
         final chunk = fileBytes.sublist(start, end);
         await supabaseClient.storage
             .from(bucketName)
             .uploadBinary(filePath, chunk,
                 fileOptions: FileOptions(
                   contentType: file.mimeType,
-                  upsert: true, // إذا كنت تريد استبدال الملف إذا كان موجودًا
+                  upsert: true,
                 ));
 
-        // تحديث التقدم
         uploadedBytes += chunk.length;
         double progress = uploadedBytes / fileBytes.length;
         onUploadProgress(progress);
       }
 
-      onUploadProgress(1.0); // إعلام بنهاية الرفع
+      onUploadProgress(1.0);
     } catch (error) {
       print('حدث خطأ أثناء الرفع: $error');
       rethrow;

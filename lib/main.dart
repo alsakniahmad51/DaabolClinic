@@ -26,6 +26,8 @@ Future<void> main() async {
     url: SupabaseKeys.projectUrl,
     anonKey: SupabaseKeys.anonyKey,
   );
+  await supabase.client.auth
+      .signInWithPassword(password: 'qwertyqwerty', email: 'admin@gmail.com');
   ExaminationRemoteDataSource examinationRemoteDataSource =
       ExaminationRemoteDataSource(supabase.client);
   ExaminationRepositoryImpl examinationRepositoryImpl =
