@@ -146,7 +146,7 @@ class DoctorOrderDetailes extends StatelessWidget {
                         ),
                         TableItem(
                           title: 'العمر',
-                          value: "////${order.patientAge}",
+                          value: "${order.patientAge}",
                           topradius: 0,
                           buttomradius: 0,
                         ),

@@ -5,6 +5,7 @@ class Order {
   final int? toothNumber;
   final int id;
   final int doctorId;
+  final int imageExtention;
   final int patientId;
   final bool isImaged;
   String patientName;
@@ -19,6 +20,7 @@ class Order {
   Order(
     this.toothNumber,
     this.isImaged, {
+    required this.imageExtention,
     required this.output,
     required this.id,
     required this.doctorId,
@@ -50,6 +52,7 @@ class Order {
       additionalNotes: json['additional_notes'] ?? 'لا يوجد',
       price: json['order_price'] ?? 0,
       output: Output.fromjson(json['output']),
+      imageExtention: json['image_extention'],
     );
   }
 }

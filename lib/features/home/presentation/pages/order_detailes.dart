@@ -1,11 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:clinic/core/util/constants.dart';
-import 'package:clinic/core/util/supabase_keys.dart';
+import 'package:clinic/core/util/file_uploader.dart';
 import 'package:clinic/core/util/widgets/custom_text_field.dart';
 import 'package:clinic/features/home/domain/Entities/order.dart';
 import 'package:clinic/features/home/presentation/manager/fetch_order_cubit/order_cubit.dart';
@@ -13,16 +9,11 @@ import 'package:clinic/features/home/presentation/manager/update_price_order_cub
 import 'package:clinic/features/home/presentation/manager/update_state_order_cubit/update_state_order_cubit.dart';
 import 'package:clinic/features/home/presentation/pages/page_view.dart';
 import 'package:clinic/features/home/presentation/widgets/detailes_table.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart' as d;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart' as intl;
-import 'package:mime/mime.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:supabase_progress_uploads/supabase_progress_uploads.dart';
 
 class OrderDetailes extends StatefulWidget {
   const OrderDetailes({
@@ -36,18 +27,11 @@ class OrderDetailes extends StatefulWidget {
 }
 
 class _OrderDetailesState extends State<OrderDetailes> {
-  late SupabaseUploadService _uploadService;
-  late SupabaseUploadController _uploadController;
-  double _singleProgress = 0.0;
-  double _multipleProgress = 0.0;
   late Supabase supabase;
   @override
   void initState() {
     super.initState();
     supabase = Supabase.instance;
-
-    _uploadService = SupabaseUploadService(supabase.client, 'images');
-    _uploadController = SupabaseUploadController(supabase.client, 'images');
   }
 
   @override
@@ -189,7 +173,7 @@ class _OrderDetailesState extends State<OrderDetailes> {
                           icon: const Icon(Icons.check_circle,
                               color: Colors.white),
                           label: const Text(
-                            'تأكيد عملية التصوير',
+                            'تأكيد عملية التصوير بدون ارسال صورة',
                             style: TextStyle(color: Colors.white),
                           ),
                           style: ElevatedButton.styleFrom(
@@ -200,7 +184,7 @@ class _OrderDetailesState extends State<OrderDetailes> {
                       ),
                     ),
                   SizedBox(height: 20.h),
-                  if (!widget.order.isImaged)
+                  if (widget.order.imageExtention == 0)
                     Directionality(
                       textDirection: TextDirection.ltr,
                       child: SizedBox(
@@ -210,7 +194,7 @@ class _OrderDetailesState extends State<OrderDetailes> {
                           icon: const Icon(Icons.upload_file,
                               color: Colors.white),
                           label: const Text(
-                            'رفع ملف',
+                            'ارسال صورة',
                             style: TextStyle(color: Colors.white),
                           ),
                           style: ElevatedButton.styleFrom(
@@ -292,7 +276,7 @@ class _OrderDetailesState extends State<OrderDetailes> {
     );
   }
 
-  void _confirmImaging(BuildContext context) {
+  void _confirmImaging(BuildContext context) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -308,7 +292,11 @@ class _OrderDetailesState extends State<OrderDetailes> {
               child: const Text('إلغاء'),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                await supabase.client
+                    .from('orders')
+                    .update({'image_extention': 0});
+
                 BlocProvider.of<UpdateStateOrderCubit>(context)
                     .updateOrderState(widget.order.id);
                 Navigator.of(context).pop();
@@ -397,279 +385,5 @@ class _OrderDetailesState extends State<OrderDetailes> {
         ),
       ),
     );
-  }
-}
-
-class FileUploader {
-  final BuildContext context;
-  final String orderId;
-  final Supabase supabase;
-
-  late final SupabaseUploadService _uploadService;
-  double _progress = 0.0;
-  bool _isUploading = false;
-  final ValueNotifier<double> _progressNotifier = ValueNotifier(0.0);
-
-  FileUploader({
-    required this.context,
-    required this.orderId,
-    required this.supabase,
-  }) {
-    _uploadService = SupabaseUploadService(supabase.client, 'images');
-  }
-
-  Future<void> pickAndUploadFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['dcm', 'jpg', 'png', 'jpeg'],
-    );
-
-    if (result == null) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'تم إلغاء عملية الرفع',
-              textDirection: TextDirection.rtl,
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      return;
-    }
-
-    PlatformFile? pickedFile = result.files.firstOrNull;
-
-    if (pickedFile == null || pickedFile.path == null) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'لم يتم اختيار ملف صالح',
-              textDirection: TextDirection.rtl,
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      return;
-    }
-
-    File file = File(pickedFile.path!);
-    String fileName = "$orderId.${pickedFile.extension}";
-
-    // إظهار Dialog تفاصيل الملف
-    await _showFileDetailsDialog(pickedFile, file, fileName);
-  }
-
-  Future<void> _showFileDetailsDialog(
-      PlatformFile pickedFile, File file, String fileName) async {
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: AlertDialog(
-            title: const Text('تفاصيل الملف'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('اسم الملف: ${pickedFile.name}'),
-                const SizedBox(height: 8),
-                Text(
-                    'حجم الملف: ${_formatFileSize(pickedFile.size)}'), // استخدام دالة التحويل
-                const SizedBox(height: 8),
-                Text('مسار الملف: ${pickedFile.path}'),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // إغلاق Dialog التفاصيل
-                },
-                child: const Text('إلغاء'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // إغلاق Dialog التفاصيل
-                  _startUpload(file, fileName); // بدء عملية الرفع
-                },
-                child: const Text('رفع'),
-              )
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-// دالة لتحويل حجم الملف إلى KB أو MB
-  String _formatFileSize(int bytes) {
-    if (bytes >= 1024 * 1024) {
-      // إذا كان الحجم أكبر من أو يساوي 1 ميجابايت
-      double sizeInMB = bytes / (1024 * 1024);
-      return '${sizeInMB.toStringAsFixed(2)} MB';
-    } else {
-      // إذا كان الحجم أقل من 1 ميجابايت
-      double sizeInKB = bytes / 1024;
-      return '${sizeInKB.toStringAsFixed(2)} KB';
-    }
-  }
-
-  Future<void> _startUpload(File file, String fileName) async {
-    try {
-      _showUploadProgressDialog(); // إظهار Dialog التقدم
-
-      _isUploading = true;
-
-      final xFile = XFile(file.path);
-      print('xFile path: ${xFile.path}'); // فحص مسار الملف
-
-      await _uploadService.uploadFile(
-        xFile,
-        fileName: fileName,
-        onUploadProgress: (progress) {
-          _updateProgress(progress);
-        },
-      );
-
-      _isUploading = false;
-      if (context.mounted) {
-        Navigator.of(context).pop(); // إغلاق Dialog التقدم
-      }
-      if (context.mounted) {
-        BlocProvider.of<UpdateStateOrderCubit>(context)
-            .updateOrderState(int.parse(orderId));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'تم رفع الملف بنجاح: $fileName',
-              textDirection: TextDirection.rtl,
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-
-      print('تم رفع الملف إلى: ');
-    } catch (error) {
-      print('حدث خطأ أثناء الرفع: $error');
-      _isUploading = false;
-      if (context.mounted) {
-        Navigator.of(context).pop(); // إغلاق Dialog التقدم
-      }
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'فشل رفع الملف: $error',
-              textDirection: TextDirection.rtl,
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  void _showUploadProgressDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return ValueListenableBuilder<double>(
-          valueListenable: _progressNotifier,
-          builder: (context, progress, _) {
-            return AlertDialog(
-              title: const Text('جاري رفع الملف...'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  LinearProgressIndicator(value: progress),
-                  const SizedBox(height: 8),
-                  Text('${(progress * 100).toStringAsFixed(1)}%'),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: _isUploading ? () => _cancelUpload(context) : null,
-                  child: const Text('إلغاء'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _updateProgress(double progress) {
-    _progressNotifier.value = progress;
-  }
-
-  void _cancelUpload(BuildContext context) {
-    _isUploading = false;
-    Navigator.of(context).pop(); // إغلاق Dialog التقدم
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'تم إلغاء عملية الرفع',
-          textDirection: TextDirection.rtl,
-        ),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
-}
-
-class SupabaseUploadService {
-  final SupabaseClient supabaseClient;
-  final String bucketName;
-
-  SupabaseUploadService(this.supabaseClient, this.bucketName);
-  Future<void> uploadFile(
-    XFile file, {
-    required String fileName, // استقبال اسم الملف
-    required Function(double) onUploadProgress,
-  }) async {
-    try {
-      final fileBytes = await file.readAsBytes();
-
-      // استخدم fileName الذي تم تمريره بدلاً من التسمية العشوائية
-      final filePath = fileName;
-
-      const chunkSize = 256 * 1024; // 256 KB
-      int totalChunks = (fileBytes.length / chunkSize).ceil();
-      int uploadedBytes = 0;
-
-      for (int i = 0; i < totalChunks; i++) {
-        int start = i * chunkSize;
-        int end = (i + 1) * chunkSize;
-        if (end > fileBytes.length) {
-          end = fileBytes.length;
-        }
-
-        final chunk = fileBytes.sublist(start, end);
-        await supabaseClient.storage
-            .from(bucketName)
-            .uploadBinary(filePath, chunk,
-                fileOptions: FileOptions(
-                  contentType: file.mimeType,
-                  upsert: true,
-                ));
-
-        uploadedBytes += chunk.length;
-        double progress = uploadedBytes / fileBytes.length;
-        onUploadProgress(progress);
-      }
-
-      onUploadProgress(1.0);
-    } catch (error) {
-      print('حدث خطأ أثناء الرفع: $error');
-      rethrow;
-    }
   }
 }
